@@ -1,0 +1,94 @@
+---
+
+interface User {
+    key: string;
+    name: string;
+    value: string;
+}
+
+interface Concept {
+    type: string;
+    title: string;
+    users: User[];
+}
+
+const SEPARATOR_NAME: string = '-';
+
+let baseConcepts: Concept[] = [
+    {
+        type: 'rentail',
+        title: 'Alquiler',
+        users: [
+            { key: 'ines', name: 'Inés', value: '' },
+            { key: 'carlos', name: 'Carlos', value: '' },
+        ],
+    },
+    {
+        type: 'internet',
+        title: 'Internet',
+        users: [
+            { key: 'ines', name: 'Inés', value: '' },
+            { key: 'carlos', name: 'Carlos', value: '' },
+        ],
+    },
+];
+
+console.log('base', baseConcepts);
+
+if (Astro.request.method === 'POST') {
+    try {
+        const formData = await Astro.request.formData();
+
+        formData.forEach((value, name) => {
+            const splitName = name.split(SEPARATOR_NAME);
+            baseConcepts.map((concept) => {
+                if (concept.type === splitName[0]) {
+                    concept.users.map((user) => {
+                        if (user.key === splitName[1]) {
+                            user.value = value.toString(); // TODO Funcion de limpiar y obtener el resultado limpio
+                        }
+                    });
+                }
+            });
+        });
+
+        const processConcepts = baseConcepts;
+
+        console.log('procesado', processConcepts);
+    } catch (error) {
+        if (error instanceof Error) {
+            console.error(error.message);
+        }
+    }
+}
+---
+
+<form method="POST">
+    {
+        baseConcepts.map((concept) => (
+            <div>
+                <h2>{concept.title}</h2>
+
+                {concept.users.map((user) => (
+                    <div>
+                        <label>{user.name}</label>
+                        <input type="text" name={`${concept.type}${SEPARATOR_NAME}${user.key}`} value={user.value} />
+                    </div>
+                ))}
+            </div>
+        ))
+    }
+    <button>Enviar</button>
+</form>
+
+<style>
+    form {
+        display: flex;
+        flex-direction: column;
+        margin: 0 auto;
+    }
+
+    button {
+        max-width: 200px;
+    }
+</style>
